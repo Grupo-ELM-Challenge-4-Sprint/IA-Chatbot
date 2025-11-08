@@ -1,0 +1,125 @@
+PROJETO: SPRINT 4 — Modelos Preditivos de Absenteísmo
+
+Equipe SimplesHC:
+-Enzo Okuizumi RM 561432
+-Lucas Barros RM 566422
+-Milton Marcelino RM 564836
+
+
+1. OBJETIVO DO PROJETO
+
+O objetivo deste projeto é desenvolver modelos de Inteligência Artificial para auxiliar na redução do absenteísmo de pacientes no Hospital das Clínicas (HC).
+
+Esta entrega concentra-se na criação de modelos de Machine Learning (ML) — um de classificação e outro de agrupamento — capazes de identificar padrões no comportamento dos pacientes e prever a probabilidade de falta às consultas.
+
+
+2. EXPLICAÇÃO DOS DADOS (agendamentos_historico.csv)
+
+Foi utilizado um dataset sintético (simulado) com 5.000 registros de agendamentos, devido a restrições de sigilo de dados reais.  
+Cada linha representa um agendamento, e as colunas trazem características do paciente e da consulta.
+
+Principais variáveis (features):  
+- idade_paciente  
+- distancia_km  
+- especialidade  
+- tipo_consulta (Primeira Consulta / Retorno)  
+- tempo_agendamento_dias  
+- historico_faltas  
+- recebeu_lembrete  
+
+Variável alvo (target):  
+- compareceu: binária — 1 para comparecimento e 0 para ausência (falta)
+
+
+3. EXPLICAÇÃO DOS MODELOS DE MACHINE LEARNING
+
+3.1 Modelo 1 — Classificação (Random Forest)
+
+Arquivo: modelo_absenteismo.joblib  
+Objetivo: Prever se o paciente faltará (0) ou comparecerá (1) a uma consulta futura.  
+Descrição: O modelo foi treinado com o histórico de agendamentos para aprender a relação entre as variáveis e o comportamento de comparecimento.  
+A técnica de Random Forest foi escolhida por sua robustez contra overfitting e alta interpretabilidade, combinando múltiplas árvores de decisão.
+
+Resultados principais:  
+- Acurácia geral: 0.9560 (95.6%)  
+- Recall (Classe 0 - Faltou): 0.95  
+- Precisão (Classe 0 - Faltou): 0.96  
+
+Esses valores indicam que o modelo é altamente eficaz em identificar pacientes com risco real de falta, reduzindo falsos positivos e aumentando a eficiência das ações preventivas do HC.
+
+
+3.2 Modelo 2 — Agrupamento (K-Means)
+
+Objetivo: Descobrir perfis de pacientes com características semelhantes, sem usar rótulos de comparecimento durante o treino.  
+Descrição: O algoritmo K-Means foi aplicado sobre variáveis numéricas (como idade, distância, histórico e tempo de agendamento).  
+Após testes com o Método do Cotovelo, foram definidos 4 clusters representando grupos homogêneos internamente.
+
+Insights principais:  
+- Cluster 0: Alta distância (30 km), agendamento antecipado (91 dias), taxa de absenteísmo 77.6%  
+- Cluster 1: Curta distância (~11.5 km), poucas faltas, taxa de absenteísmo 2.3% (perfil de baixo risco)  
+- Cluster 2: Distância moderada (~29 km), tempo de agendamento curto (~31 dias), taxa 53.2%  
+- Cluster 3: Próximos (~11.5 km) mas com histórico de faltas elevado (~3.3 faltas), taxa 68.0%  
+
+Esses grupos revelam padrões distintos de risco, indicando que o absenteísmo é influenciado por fatores combinados (distância, histórico e tempo de agendamento).
+
+
+4. DISCUSSÃO DOS RESULTADOS
+
+Discussão — Modelo 1 (Classificação)
+
+O Random Forest apresentou excelente desempenho, com 95.6% de acurácia e métricas de precisão e recall equilibradas.  
+O recall de 0.95 para a classe “Faltou” mostra que o modelo consegue identificar 95% dos pacientes que realmente não comparecem, um resultado essencial para o contexto hospitalar, onde a prevenção de faltas reduz custos e melhora a gestão de agendas.  
+Além disso, a alta precisão (0.96) demonstra que o modelo evita falsos alarmes, priorizando ações apenas para quem realmente tem alto risco.  
+Isso abre espaço para integrações inteligentes com sistemas de agendamento, permitindo intervenções direcionadas, como:  
+- Envio de lembretes automáticos  
+- Contato telefônico  
+- Reorganização de horários
+
+
+Discussão — Modelo 2 (Agrupamento)
+
+O modelo de agrupamento (K-Means) complementa o de classificação ao fornecer uma visão macro dos perfis de pacientes.  
+Identificamos que fatores como distância da residência e histórico de faltas são os principais determinantes do absenteísmo.
+
+Os Clusters 0 e 3 representam grupos críticos, mas por motivos diferentes:  
+- Cluster 0: Impacto logístico (distância e antecedência de agendamento)  
+- Cluster 3: Comportamento recorrente de faltas, mesmo sem barreiras de deslocamento
+
+Esses insights possibilitam ao HC adotar estratégias específicas por perfil, como:  
+- Cluster 0: transporte facilitado, reagendamentos mais próximos, lembretes reforçados  
+- Cluster 3: contato proativo, lembretes personalizados e acompanhamento mais próximo  
+
+Assim, o modelo de clusterização agrega inteligência estratégica, enquanto o modelo preditivo fornece ação operacional em tempo real.
+
+
+5. EXPLICAÇÃO DA API REST
+
+Arquivo principal: api_flask_modelo.py  
+Tecnologia: Flask (Python)  
+Objetivo: Disponibilizar o modelo de classificação (Random Forest) como um serviço REST, permitindo integração com sistemas externos.
+
+Funcionamento:  
+O arquivo api_flask_modelo.py carrega o modelo salvo (modelo_absenteismo.joblib) e expõe o endpoint /prever, que recebe requisições POST com dados de um paciente em formato JSON.
+
+A API retorna uma resposta JSON com:  
+- A previsão (Faltará ou Comparecerá)  
+- As probabilidades associadas a cada classe
+
+Isso possibilita integração com sistemas de agendamento, painéis de gestão ou aplicativos móveis, tornando a previsão de absenteísmo disponível em tempo real.
+
+Como executar:  
+python api_flask_modelo.py
+
+
+Execução e Teste da API
+
+Além da API, foi criado o script executando.py para enviar requisições automáticas e testar o funcionamento do modelo.
+
+Como executar (Terminal CMD, no powershell não funciona):
+python executando.py
+
+
+6. CONCLUSÃO
+
+O projeto SimplesHC demonstrou como a Inteligência Artificial pode apoiar a gestão hospitalar, reduzindo o absenteísmo e otimizando recursos.  
+Com um modelo de classificação preciso e um agrupamento interpretável, o sistema oferece uma base sólida para ações preventivas e personalizadas, contribuindo diretamente para uma melhor eficiência operacional e experiência do paciente.
